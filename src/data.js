@@ -10,7 +10,7 @@ import energyDataCSV from "./data/energy_data.csv?raw";
 import continentsDataClean from "./data/continentsDataClean.json";
 
 export let joinedData;
-export let continentsArray;
+export let regionsArray;
 export let beeswarm_data;
 //
 
@@ -191,14 +191,86 @@ regionalNested = Array.from(
   ...flatRegionalComparison.filter((d) => d.targetRegion === region),
 ]);
 
-//Data for force and beeswarm
-const energyData = aq.fromCSV(energyDataCSV).objects();
 
+//Data for force and beeswarm
+const energyData = aq.fromCSV(energyDataCSV);//.objects();
+
+// Data cleaning for energy  Charlene
+let energyClean = energyData
+.filter(d=>d.iso_code && d.year>1999)
+.select({
+  country: 'country',
+  year: 'year',
+  iso_code: 'targetISO',
+  gdp: 'gdp',
+  population: 'population',
+  gdp : 'gdp',
+  renewables_share_energy:'renewablesShareCon',
+  renewables_share_elec:'renewablesShareGen',
+  renewables_energy_per_capita:'renewablesConsPerCap',
+  renewables_elec_per_capita:'renewablesGenPerCap',
+  renewables_consumption:'renewablesCons',
+  renewables_cons_change_pct:'renewablesConsChangePercPct',
+  renewables_cons_change_twh:'renewablesConsChangePercTwh'
+      // renewables_share_energy: 'renewablesShareCon',
+  //renewables_share_elec: 'renewablesShareGen',
+})
+ .derive({
+    gdpPerCap: (d) => d.gdp / d.population,
+    population: (d) => aq.op.parse_float(d.population),
+    gdp: (d) => aq.op.parse_float(d.gdp),
+    renewablesShareCon: (d) => aq.op.parse_float(d.renewablesShareCon),
+    renewablesShareGen: (d) => aq.op.parse_float(d.renewablesShareGen),
+    continent: aq.escape((d) => {
+
+      if (clm.getCountryByAlpha3(d.targetISO))
+      {
+      
+       return clm.getCountryByAlpha3(d.targetISO).continent;
+      }
+      
+      else
+      {
+       
+       return 'no_continent'
+      }
+
+    }),
+    targetRegion: aq.escape((d,i) => {
+     if (clm.getCountryByAlpha3(d.targetISO))
+     {
+     
+      return clm.getCountryByAlpha3(d.targetISO).region;
+     }
+     
+     else
+     {
+      console.log(d)
+      return 'no_region'
+     }
+  })
+  
+})
+.filter(
+  (d) =>
+    d.targetRegion!=='no_region' &&
+    d.gdp >= 0 &&
+    d.renewablesShareCon >= 0
+    && d.country !== "World"
+    && !d.country.includes("BP")
+    && !d.country.includes("Ember")
+)
+//.objects();
+
+
+
+/*
 let energyClean = energyData.map(d => { 
     var newd = {
       country : d.country,
       year : d.year,
       iso_code : d.iso_code,
+      //targetISO : d.iso_code,
       gdp : d.gdp,
       population:d.population,
       renewablesShare : d.renewables_share_energy,
@@ -222,6 +294,7 @@ let energyClean = energyData.map(d => {
       && !d.country.includes("BP")
       && !d.country.includes("Ember")
     );
+    */
 
     let energyCleanArq = aq.from(energyClean);
 let continentsCleanArq = aq.from(continentsDataClean);
@@ -237,14 +310,18 @@ let continentsCleanArq = aq.from(continentsDataClean);
 */
 let beeswarm_data_simple=aq.from(energyClean)
 .derive({ gdpPerCap : d => d.gdp/d.population})
+  
 .filter(
   (d) =>
     op.abs(d.gdp) >= 0 &&
-    op.abs(d.renewables_share_energy) >= 0
+    op.abs(d.renewablesShareCon) >= 0
 )
 //.energyArq.join_full(continentsClean).objects()
 
-beeswarm_data=beeswarm_data_simple.join_left(continentsCleanArq).objects()    
+//beeswarm_data=beeswarm_data_simple.join_left(continentsCleanArq).objects()    
+beeswarm_data=beeswarm_data_simple.objects()    
 
-joinedData=energyCleanArq.join_left(continentsCleanArq).objects()    
-continentsArray = [...new Set(joinedData.filter(d=>d!==undefined && d.continent).map(d => d.continent))] 
+joinedData=energyCleanArq.objects()    
+regionsArray = [...new Set(joinedData.filter(d=>d!==undefined && d.targetRegion).map(d => d.targetRegion))] 
+console.warn(joinedData)
+
