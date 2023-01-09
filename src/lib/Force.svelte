@@ -1,14 +1,16 @@
 <script>
   import * as d3 from "d3";
-  
+  import {interpolateInferno} from "https://cdn.skypack.dev/d3-scale-chromatic@3";
   export let width;
   export let height;
   export let param_force;
   export let params_labels;
-  export let continentsArray;
+  export let regionsArray;
   export let year;
   export let my_data;
 
+  console.warn(interpolateInferno)
+ 
   //reference to g containing 'circles'
   let all_nodes;
   //reference to each 'circle'...
@@ -36,7 +38,8 @@
       .domain([d3.min(my_data, d => d[param_force]), d3.max(my_data, d => d[param_force])])
      .range([(margin.left+maxRadius), (width - margin.left)]);
 
-  
+  console.warn([0, d3.max(my_data, d => d[param_force])])
+
     $ : xScaleAxis = d3.scaleLinear()                
       .domain([0, d3.max(my_data, d => d[param_force])])
      .range([margin.left, (width - margin.left)])           
@@ -45,10 +48,20 @@
         .domain([d3.min(my_data, d => d.gdp),d3.max(my_data, d => d.gdp)])
         .range([3, maxRadius]);           
 
-    //no need of reactivity     
+    //no need of reactivity    
+    /*npm
     let colorScale = d3.scaleOrdinal()
-                  .domain(continentsArray)
+                  .domain(regionsArray)
                   .range(d3.schemeCategory10);
+       */
+
+console.warn(regionsArray)
+console.log(Object.keys(regionsArray).map(d=>parseInt(d)))
+//let colorScale = d3.scaleSequential().domain(Object.keys(regionsArray).map(d=>parseInt(d)))
+let colorScale = d3.scaleSequential().domain([0,regionsArray.length])
+  .interpolator(interpolateInferno);
+ alert(colorScale(2))
+  
     
     let tooltip = d3.select('body')
         .append('div')
@@ -84,9 +97,16 @@
                                 }).join('')
                                     +`
                                     <span><b>GDP per cap</b>: ${d.gdp.toLocaleString('en-US', {maximumFractionDigits: 2})}<span/>                              
-                                    `)                   
+                                    `)  
+                                
+                                    
+                                              
     }      
-    
+    function find_arr (region)
+    {
+     // console.log(region,regionsArray.indexOf(region),colorScale(regionsArray.indexOf(region)))
+      return colorScale(regionsArray.indexOf(region))
+    }
     let displayData = [];  
     function update() {
       //only 'updating' my_data simulation tick fires..
@@ -107,6 +127,7 @@
     let innerH=height - margin.top - margin.bottom;
     let  format_k =function(d)
     {
+   
       if (!param_force.includes('Perc'))
       {
       if (d/1000>1)
@@ -115,12 +136,13 @@
       return d
       }
       else
-     {
+      {
         if (param_force.includes('Twh'))
         return d+' Twh'
         else
         return d
       }
+    
     }
   </script>
  
@@ -129,10 +151,12 @@
   <g class="xAxis" transform="translate(0,0)">
    
         {#each xScaleAxis.ticks() as d,i}
+   
   
             <text
-                text-anchor={'middle'}
-                font-size={'.7rem'}
+            text-anchor={'middle'}
+            font-size={'.7rem'}
+                
                 dy=".71em"
                 y={innerH}
                 transform={`translate(${xScaleAxis(d)},0)`}
@@ -149,8 +173,9 @@
   {#each displayData as d,i}
   <circle bind:this={nodes}
       r={radiusScale(d.gdp) }
-      fill={colorScale(d.continent)}
-      fill-opacity={0.4}
+     fill={find_arr(d.targetRegion)}
+
+      fill-opacity={1}
       data={JSON.stringify(d)}
       cx={d.x}
       cy={d.y}
