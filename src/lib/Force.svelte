@@ -115,9 +115,11 @@
       return d
       }
       else
-      {
+     {
         if (param_force.includes('Twh'))
         return d+' Twh'
+        else
+        return d
       }
     }
   </script>
