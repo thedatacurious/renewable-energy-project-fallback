@@ -4,6 +4,16 @@ import renewShareCSV from "./data/renewable-share-energy.csv?raw";
 import clm from "country-locale-map";
 import * as fs from "node:fs/promises";
 
+//force and beeswarm data
+import energyDataCSV from "./data/energy_data.csv?raw";
+//import energyData from "./data/energyData.json";
+import continentsDataClean from "./data/continentsDataClean.json";
+
+export let joinedData;
+export let continentsArray;
+export let beeswarm_data;
+//
+
 export let sankeyData;
 export let ChinaAfricaInfo;
 export let regionalNested;
@@ -180,3 +190,61 @@ regionalNested = Array.from(
 ).map((region) => [
   ...flatRegionalComparison.filter((d) => d.targetRegion === region),
 ]);
+
+//Data for force and beeswarm
+const energyData = aq.fromCSV(energyDataCSV).objects();
+
+let energyClean = energyData.map(d => { 
+    var newd = {
+      country : d.country,
+      year : d.year,
+      iso_code : d.iso_code,
+      gdp : d.gdp,
+      population:d.population,
+      renewablesShare : d.renewables_share_energy,
+      renewablesConsPerCap: d.renewables_energy_per_capita,
+      renewablesGenPerCap: d.renewables_elec_per_capita,
+      renewablesCons: d.renewables_consumption,
+      renewablesConsChangePercPct: d.renewables_cons_change_pct,
+      renewablesConsChangePercTwh: d.renewables_cons_change_twh ,
+      renewables_share_energy:d.renewables_share_energy,
+      renewables_share_elec:d.renewables_share_elec
+  }
+  
+    return newd;
+  }).filter((d) =>
+      d.gdp >= 0 
+      
+      //why??
+      && d.renewablesShare >= 0 
+      //&& d.year === parseInt(year) &&
+      && d.country !== "World"
+      && !d.country.includes("BP")
+      && !d.country.includes("Ember")
+    );
+
+    let energyCleanArq = aq.from(energyClean);
+let continentsCleanArq = aq.from(continentsDataClean);
+/*.select({
+  country: 'country',
+  year: 'year',
+  iso_code: 'iso_code',
+  gdp: 'gdp',
+  population: 'population',
+  renewables_share_energy: 'renewablesShareCon',
+  renewables_share_elec: 'renewablesShareGen',
+})
+*/
+let beeswarm_data_simple=aq.from(energyClean)
+.derive({ gdpPerCap : d => d.gdp/d.population})
+.filter(
+  (d) =>
+    op.abs(d.gdp) >= 0 &&
+    op.abs(d.renewables_share_energy) >= 0
+)
+//.energyArq.join_full(continentsClean).objects()
+
+beeswarm_data=beeswarm_data_simple.join_left(continentsCleanArq).objects()    
+
+joinedData=energyCleanArq.join_left(continentsCleanArq).objects()    
+continentsArray = [...new Set(joinedData.filter(d=>d!==undefined && d.continent).map(d => d.continent))] 
