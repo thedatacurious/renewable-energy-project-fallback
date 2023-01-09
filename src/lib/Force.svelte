@@ -131,7 +131,8 @@
         {#each xScaleAxis.ticks() as d,i}
   
             <text
-                style={{ textAnchor: 'middle' }}
+                text-anchor={'middle'}
+                font-size={'.7rem'}
                 dy=".71em"
                 y={innerH}
                 transform={`translate(${xScaleAxis(d)},0)`}
