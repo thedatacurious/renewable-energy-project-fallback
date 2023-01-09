@@ -3,13 +3,14 @@
   import Sankey from "./lib/Sankey.svelte";
   import Range from "./lib/Range.svelte";
   import SmallMultiple from "./lib/SmallMultiple.svelte";
-  import { sankeyData, ChinaAfricaInfo, regionalNested } from "./data.js";
+  import { sankeyData, ChinaAfricaInfo, regionalNested ,joinedData,regionsArray,beeswarm_data} from "./data.js";
+
 
   import * as d3 from "d3";
   import { onMount } from 'svelte'; 
-  import  {joinedData,continentsArray,beeswarm_data}  from './data.js';
+  
   import Force from "./lib/Force.svelte";
-  //import Beeswarm from "./Components/Charts/Beeswarm.svelte";
+  //import Beeswarm from "./lib/Beeswarm.svelte";
   
 
   $: sankeyYear = 2003;
@@ -42,7 +43,8 @@
     renewablesConsPerCap: "Per capita electricity consumption from renewables",
     renewablesGenPerCap: "Per capita electricity generation from renewables",
     renewablesShare: "Share of primary energy consumption that comes from renewables",
-    renewables_share_elec: "Share of electricity generation that comes from renewables"
+    //renewables_share_elec: "Share of electricity generation that comes from renewables"
+    renewablesShareGen:"Share of electricity generation that comes from renewables"
   }
 
   $ : beeswarm_data_filtered=beeswarm_data.filter((d)=>d.year==sankeyYear && d[param_force]);
@@ -55,12 +57,22 @@
   onMount(() => 
   {
     let selectedCont=[];
-   
-   
-    let colorScale = d3.scaleOrdinal()
-                  .domain(continentsArray)
+   let regionsArray2=[...new Set(filtered.filter(d=>d.targetRegion).map(d => d.targetRegion))] 
+   let continentsArray=[...new Set(filtered.map(d => d.continent))] 
+   /*
+   alert(d3.interpolateYlGn(0.5))
+   26 => 1
+   1 => x
+
+   x= 1/26
+   */
+let colorScale = d3.scaleSequential().domain(regionsArray2)
+  .interpolator(d3.interpolateViridis);
+ /*
+ let colorScale = d3.scaleOrdinal()
+                  .domain(regionsArray2)
                   .range(d3.schemeCategory10);
- 
+ */
    let legend=d3.select('.legend')
     .attr('transform', 'translate(' + (margin.left + margin.right + 60) + ',' + (margin.top - 20) + ')')
     .selectAll('g')
@@ -119,14 +131,7 @@
   })
   */
 
-  legend.append('circle')
-  .attr('fill', (d, i) => 
-  {
-    return colorScale(d)
-    })   
-  .attr('transform','translate(0,8)')  
-  .attr('r', 8)
-  .attr('fill-opacity',.6)
+
   
   
   legend.append('text')
@@ -135,29 +140,39 @@
     .attr('dy', '.15em')
     .text((d, i) => d)
     .style('text-anchor', 'start')
+    .style('text-decoration',"underline")
     .style('font-size', 12);
 
     let sum=0;
     legend.each(function(d,i)
     {
       
-      let node_width=(d3.select(this).node().getBBox().width);
-      
+      let node_width=(d3.select(this).node().getBBox().width);      
       if (i>0)
-      {
-      
+      {      
+         if (sum>600)
+        {
+          sum=0;
+          d3.select(this).attr('transform','translate(8, 25)')
+        }
+        else
+        {
+
+        
         d3.select(this).attr('transform','translate('+sum+', 5)')
         sum+=node_width+15;
+        }
       }
       
       else
       {
-        
+     
         sum+=node_width+15;
     d3.select(this).attr('transform','translate(8, 5)')
       }
     })
 })
+
 </script>
 
 <main>
@@ -186,7 +201,7 @@
     wind, solar, hydro, and geothermal energy sources.
   </p>
 
-  <p>[Beeswarm plots placeholder]</p>
+  <p>[Beeswarm plots ]</p>
 
   <div class="select">
     <div>
@@ -206,8 +221,9 @@
       </select>
     </div>
     -->
-  </div>
+  
   <label for="basic-range">Years {sankeyYear} <small>From 2000 on</small></label>
+  </div>
 <!--
 <Range
  bind:my_data={filtered} 
@@ -219,13 +235,18 @@
 />
 -->
 
-
-    <svg class="legend" {width} height=50 xmlns:svg='https://www.w3.org/2000/svg' viewBox='0 0 {width} 50' bind:this={this_legend} />
+<div style="float:left">
+    <svg transform="translate(0,0)" class="legend" {width} height=20 xmlns:svg='https://www.w3.org/2000/svg' viewBox='0 0 {width} 20' bind:this={this_legend} />
 
     <svg class="force" {width} {height} xmlns:svg='https://www.w3.org/2000/svg' bind:this={force_svg} viewBox='0 0 {width} {height}'>
-      <Force {params_labels} {width} {param_force} {continentsArray} {height} year={sankeyYear} bind:my_data={filtered}/> 
+      <Force {params_labels} {width} {param_force} {regionsArray} {height} year={sankeyYear} bind:my_data={filtered}/> 
     </svg>
-    
+</div>    
+<!--
+    <svg  class="beeswarm" width={650} height={600} xmlns:svg='https://www.w3.org/2000/svg' viewBox='0 0 650 600'>
+      <Beeswarm {regionsArray} {params_labels} width={650} height={600} year={sankeyYear} {param_force} bind:my_beeswarmdata={beeswarm_data_filtered}/> 
+    </svg>
+ -->   
     
   <p>
     We take a look at how much investment each region is receiving for renewable
