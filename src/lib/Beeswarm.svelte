@@ -110,7 +110,7 @@
                                 .style('visibility', 'visible')
                                 
                                 .html(`<b>Country</b>: ${d.country} <br/>
-                                <b>Country</b>: ${d.continent} <br/>
+                                <b>Continent</b>: ${d.continent} <br/>
                                 <b>Year</b>: ${d.year} <br/>
                                 <b>GDP per cap</b>: ${d.gdp.toLocaleString('en-US', {maximumFractionDigits: 2})}<br/>
                                 <b>Renewable Consumption per cap</b>: ${d[param_force]}`)
