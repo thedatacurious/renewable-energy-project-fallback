@@ -8,8 +8,8 @@ Group members: Alexandra Khoo, Charlene Chua, Pere Roca Ristol
 
 ## Project Deliverables
 
-- [Final deployed project](https://renewable-energy-project.vercel.app/)
-- [Data processing script](https://github.com/thedatacurious/renewable-energy-project/blob/main/src/data.js)
+- [Final deployed project](https://renewable-energy-project-fallback.vercel.app/)
+- [Data processing script](https://github.com/thedatacurious/renewable-energy-project-fallback/blob/master/src/data.js)
 - [Observable notebook for exploratory data analysis](https://observablehq.com/d/50efba901104c688)
 
 ## Data Sources
