@@ -48,19 +48,10 @@
         .domain([d3.min(my_data, d => d.gdp),d3.max(my_data, d => d.gdp)])
         .range([3, maxRadius]);           
 
-    //no need of reactivity    
-    /*npm
-    let colorScale = d3.scaleOrdinal()
-                  .domain(regionsArray)
-                  .range(d3.schemeCategory10);
-       */
-
-console.warn(regionsArray)
-console.log(Object.keys(regionsArray).map(d=>parseInt(d)))
-//let colorScale = d3.scaleSequential().domain(Object.keys(regionsArray).map(d=>parseInt(d)))
-let colorScale = d3.scaleSequential().domain([0,regionsArray.length])
-  .interpolator(interpolateInferno);
- alert(colorScale(2))
+    //no need of reactivity
+    let colorScale = d3.scaleSequential().domain([0,regionsArray.length])
+      .interpolator(interpolateInferno);
+ 
   
     
     let tooltip = d3.select('body')
@@ -84,7 +75,8 @@ let colorScale = d3.scaleSequential().domain([0,regionsArray.length])
                 .style("left", e.pageX - tooltipWidth/2 +'px')
                 .style("top", e.pageY-tooltipHeight - 10+'px')
                 .style('visibility', 'visible')            
-                .html(`<span><b>Country</b>: ${d.country} <span/>
+                .html(`<span><b>Region</b>: ${d.targetRegion} <span/>
+                  <span><b>Country</b>: ${d.country} <span/>
                 <span><b>Year</b>: ${d.year} <span/>`+
                     Object.entries(params_labels).map((o,i)=>
                                 {
