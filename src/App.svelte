@@ -10,7 +10,7 @@
   import { onMount } from 'svelte'; 
   
   import Force from "./lib/Force.svelte";
-  //import Beeswarm from "./lib/Beeswarm.svelte";
+  import Beeswarm from "./lib/Beeswarm.svelte";
   
 
   $: sankeyYear = 2003;
@@ -32,7 +32,9 @@
   let margin= {left: 40, right: 20, top: 20, bottom: 10};
 
   let year = 2013;
-  let param_force='renewablesConsPerCap';
+  let param_force='renewablesShareCon';
+  //let forceY_param='targetRegion';
+  let forceY_param='targetRegion';
 
   let params_force=Object.keys(joinedData[0]).filter(d=>d.includes('renewables'))
   //renewablesConsPerCap
@@ -42,12 +44,12 @@
     renewablesConsChangePercTwh: "Annual change in other renewable consumption, measured in terawatt-hours",
     renewablesConsPerCap: "Per capita electricity consumption from renewables",
     renewablesGenPerCap: "Per capita electricity generation from renewables",
-    renewablesShare: "Share of primary energy consumption that comes from renewables",
+    renewablesShareCon: "Share of primary energy consumption that comes from renewables",
     //renewables_share_elec: "Share of electricity generation that comes from renewables"
     renewablesShareGen:"Share of electricity generation that comes from renewables"
   }
 
-  $ : beeswarm_data_filtered=beeswarm_data.filter((d)=>d.year==sankeyYear && d[param_force]);
+  $ : beeswarm_data_filtered=beeswarm_data.filter((d)=>d.year==sankeyYear && d[param_force] && d[forceY_param]);
 
   $ : filtered=joinedData.filter((d)=>d.year==sankeyYear && d[param_force]);
 
@@ -56,23 +58,9 @@
 
   onMount(() => 
   {
-    let selectedCont=[];
-   let regionsArray2=[...new Set(filtered.filter(d=>d.targetRegion).map(d => d.targetRegion))] 
+   //no sense to make legend by 27 different regions
    let continentsArray=[...new Set(filtered.map(d => d.continent))] 
-   /*
-   alert(d3.interpolateYlGn(0.5))
-   26 => 1
-   1 => x
-
-   x= 1/26
-   */
-let colorScale = d3.scaleSequential().domain(regionsArray2)
-  .interpolator(d3.interpolateViridis);
- /*
- let colorScale = d3.scaleOrdinal()
-                  .domain(regionsArray2)
-                  .range(d3.schemeCategory10);
- */
+   
    let legend=d3.select('.legend')
     .attr('transform', 'translate(' + (margin.left + margin.right + 60) + ',' + (margin.top - 20) + ')')
     .selectAll('g')
@@ -82,58 +70,27 @@ let colorScale = d3.scaleSequential().domain(regionsArray2)
     .on('mouseover',function(e,g_data)
     {
       //the g
-      console.warn(d3.select(this))
+      //console.warn(d3.select(this))
       d3.selectAll('.legend g').filter((d)=>
       {
         return d!==g_data;
       }).attr('opacity',.6)
-    // console.info(d3.select(force_svg).selectAll('circle'))
+    
       let circles=d3.select(force_svg).selectAll('circle');
-      circles.attr('fill-opacity',.6)
+      circles.attr('fill-opacity',1)
       circles.each(function(d, i)
         {
-
-        let data=JSON.parse(d3.select(this).attr('data'))
-        if (data.continent!==g_data)
-        d3.select(this).attr('fill-opacity',.2)
+          let data=JSON.parse(d3.select(this).attr('data'))
+          if (data.continent!==g_data)
+          d3.select(this).attr('fill-opacity',.2)
         })
     })
     .on('mouseout',function()
     {
       d3.selectAll('.legend g').attr('opacity',1)
-      d3.select(force_svg).selectAll('circle').attr('fill-opacity',.6)
+      d3.select(force_svg).selectAll('circle').attr('fill-opacity',1)
     })
-  /*
-  .on('click',function(e,g_data)
-  {
-    console.log(selectedCont)
-    let pos=selectedCont.indexOf(g_data);
-    if (pos==-1)
-    {      
-      //items 
-      selectedCont.push(g_data)
-    }
-    else
-    {      
-       selectedCont.splice(pos, 1);
-    }
-
-    d3.selectAll('.legend g').each(function(d)
-    {
-      console.log(d)
-      if (selectedCont.indexOf(d)>-1)
-      d3.select(this).attr('opacity',.6)
-      else
-      d3.select(this).attr('opacity',1)
-    })
-
-
-  })
-  */
-
-
-  
-  
+ 
   legend.append('text')
     .attr('x', 18)
     .attr('y', 10)
@@ -150,25 +107,17 @@ let colorScale = d3.scaleSequential().domain(regionsArray2)
       let node_width=(d3.select(this).node().getBBox().width);      
       if (i>0)
       {      
-         if (sum>600)
-        {
-          sum=0;
-          d3.select(this).attr('transform','translate(8, 25)')
-        }
-        else
-        {
-
-        
+       
         d3.select(this).attr('transform','translate('+sum+', 5)')
         sum+=node_width+15;
-        }
+        
       }
       
       else
       {
      
         sum+=node_width+15;
-    d3.select(this).attr('transform','translate(8, 5)')
+       d3.select(this).attr('transform','translate(8, 5)')
       }
     })
 })
@@ -201,7 +150,6 @@ let colorScale = d3.scaleSequential().domain(regionsArray2)
     wind, solar, hydro, and geothermal energy sources.
   </p>
 
-  <p>[Beeswarm plots ]</p>
 
   <div class="select">
     <div>
@@ -243,10 +191,27 @@ let colorScale = d3.scaleSequential().domain(regionsArray2)
     </svg>
 </div>    
 <!--
-    <svg  class="beeswarm" width={650} height={600} xmlns:svg='https://www.w3.org/2000/svg' viewBox='0 0 650 600'>
-      <Beeswarm {regionsArray} {params_labels} width={650} height={600} year={sankeyYear} {param_force} bind:my_beeswarmdata={beeswarm_data_filtered}/> 
+<div class='col'>
+  
+  <button class="selected" on:click={() => forceY_param = 'continent'}>By continent</button>
+  <button on:click={() => forceY_param = 'targetRegion'}>By region</button>
+</div>
+-->
+<div>
+<select bind:value={forceY_param}>
+
+      <option id={"continent"} value={"continent"}>By continent</option> 
+      <option id={"targetRegion"} value={"targetRegion"}>By region</option> 
+  
+</select>
+</div>
+  <!--<div>Continents</div> -->
+    <svg  class="beeswarm" width={950} height={650} xmlns:svg='https://www.w3.org/2000/svg' viewBox='0 0 950 650'>
+      <Beeswarm {forceY_param} continentsArray={[...new Set(beeswarm_data_filtered.map(d => d.continent))]}
+         regionsArray={[...new Set(beeswarm_data_filtered.map(d => d.targetRegion))]} 
+        {params_labels} width={950} height={650} year={sankeyYear} {param_force} bind:my_beeswarmdata={beeswarm_data_filtered}/> 
     </svg>
- -->   
+ 
     
   <p>
     We take a look at how much investment each region is receiving for renewable
@@ -391,9 +356,13 @@ let colorScale = d3.scaleSequential().domain(regionsArray2)
  {
   cursor:pointer;
  }
+ :global(.beeswarm .tick line,.beeswarm .domain)
+ {
+  opacity:0;
+ }
   :global(.beeswarm .axis text,.yAxis text)
   {
-    fill:white;
+    fill:grey;
     font-size:.7rem;
   }
   :global(.highlighted)
@@ -401,7 +370,7 @@ let colorScale = d3.scaleSequential().domain(regionsArray2)
     {
       padding:2px;
       background:#ff9800;
-      color:white;
+      color:grey;
     }
   :global(.force),:global(.beeswarm)
    {
