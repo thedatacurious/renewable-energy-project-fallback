@@ -190,24 +190,20 @@
       <Force {params_labels} {width} {param_force} {regionsArray} {height} year={sankeyYear} bind:my_data={filtered}/> 
     </svg>
 </div>    
-<!--
-<div class='col'>
-  
-  <button class="selected" on:click={() => forceY_param = 'continent'}>By continent</button>
-  <button on:click={() => forceY_param = 'targetRegion'}>By region</button>
-</div>
--->
+
 <div>
-<select bind:value={forceY_param}>
+<!--
+  <select bind:value={forceY_param}>
 
       <option id={"continent"} value={"continent"}>By continent</option> 
       <option id={"targetRegion"} value={"targetRegion"}>By region</option> 
   
 </select>
 </div>
+-->
   <!--<div>Continents</div> -->
     <svg  class="beeswarm" width={950} height={650} xmlns:svg='https://www.w3.org/2000/svg' viewBox='0 0 950 650'>
-      <Beeswarm {forceY_param} continentsArray={[...new Set(beeswarm_data_filtered.map(d => d.continent))]}
+      <Beeswarm forceY_param='targetRegion' continentsArray={[...new Set(beeswarm_data_filtered.map(d => d.continent))]}
          regionsArray={[...new Set(beeswarm_data_filtered.map(d => d.targetRegion))]} 
         {params_labels} width={950} height={650} year={sankeyYear} {param_force} bind:my_beeswarmdata={beeswarm_data_filtered}/> 
     </svg>
