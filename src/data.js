@@ -214,6 +214,8 @@ let energyClean = energyData
   renewables_cons_change_twh:'renewablesConsChangePercTwh'
       // renewables_share_energy: 'renewablesShareCon',
   //renewables_share_elec: 'renewablesShareGen',
+
+  
 })
  .derive({
     gdpPerCap: (d) => d.gdp / d.population,
@@ -324,4 +326,5 @@ beeswarm_data=beeswarm_data_simple.objects()
 joinedData=energyCleanArq.objects()    
 regionsArray = [...new Set(joinedData.filter(d=>d!==undefined && d.targetRegion).map(d => d.targetRegion))] 
 console.warn(joinedData)
-
+console.warn(joinedData)
+console.log(regionsArray.length)
