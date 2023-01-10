@@ -170,7 +170,7 @@
     </div>
     -->
   
-  <label for="basic-range">Years {sankeyYear} <small>From 2000 on</small></label>
+
   </div>
 <!--
 <Range
