@@ -190,9 +190,9 @@
       <Force {params_labels} {width} {param_force} {regionsArray} {height} year={sankeyYear} bind:my_data={filtered}/> 
     </svg>
 </div>    
-
-<div>
 <!--
+<div>
+
   <select bind:value={forceY_param}>
 
       <option id={"continent"} value={"continent"}>By continent</option> 
